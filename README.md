@@ -49,3 +49,11 @@
 
 ## ***example：*** 
 ![blockchain](https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=702257389,1274025419&fm=27&gp=0.jpg "区块链")
+# 六、超链接
+    [超链接名](超链接地址 "超链接title")
+    title可加可不加
+    默认不会在新页面打开，如果有需要可以使用html的a标签
+    <a href="超链接地址" target="_blank">超链接名</a>
+## ***example：***  
+[百度](http://baidu.com)  
+<a href="http://baidu.com" target="_blank">百度</a>
