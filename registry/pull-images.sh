@@ -7,6 +7,6 @@ for imageName in ${images[@]} ; do
   docker pull $USERNAME/$imageName
   docker tag $USERNAME/$imageName k8s.gcr.io/$imageName
   docker tag $USERNAME/$imageName $LOCALIP:5000/$imageName
+  docker push $LOCALIP:5000/$imageName
   docker rmi $USERNAME/$imageName
 done
-
