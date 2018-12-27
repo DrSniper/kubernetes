@@ -79,6 +79,17 @@ docker push `hostname -i`:5000/flannel:v0.10.0-amd64
 
 bash kubernetes/registry/master-pull-images.sh
 
+cat << EOF > node-pull-images.sh
+#! /bin/bash
+USERNAME=`hostname -i`
+images=(kube-apiserver:v1.12.2 kube-controller-manager:v1.12.2 kube-scheduler:v1.12.2 kube-proxy:v1.12.2 pause:3.1 etcd:3.2.24 coredns:1.2.2 kubernetes-dashboard-amd64:v1.10.0)
+for imageName in ${images[@]} ; do
+  docker pull $USERNAME/$imageName
+  docker tag $USERNAME/$imageName k8s.gcr.io/$imageName
+  docker rmi $USERNAME/$imageName
+done
+EOF
+
 echo "###7.初始化master节点"
 kubeadm init \
   --kubernetes-version=v1.12.2 \
@@ -96,7 +107,8 @@ echo "###9.将master节点同时设置为计算节点"
 kubectl taint nodes `hostname` node-role.kubernetes.io/master-
 
 echo "###10.添加网络插件[fannel]"
-kubectl apply -f  yaml/flannel.yaml
+kubectl apply -f  kubernetes/yaml/k8s-base-plugins/flannel.yaml
+
 
 echo "###11.安装dashboard"
 kubectl apply -f  kubernetes/yaml/k8s-base-plugins/k8s-dashboard.yaml 
@@ -106,9 +118,12 @@ if [ $CHOICE == 1 ];then
 	 echo "###12.添加node节点"
 	 for i in $NODE_IP
 	 do
-	 	sshpass -p "$NODE_PASSWD" scp /root/up-k8s-node.sh root@$i:/root
-	 	sshpass -p "$NODE_PASSWD" scp /root/kube-init.txt root@$i:/root
-	 	sshpass -p "$NODE_PASSWD" ssh root@$i "bash /root/up-k8s-node.sh"
+	 	sshpass -p "$NODE_PASSWD" ssh root@$i "mkdir -p /etc/docker/"
+		sshpass -p "$NODE_PASSWD" scp /etc/docker/daemon.json root@$i:/etc/docker 
+	 	sshpass -p "$NODE_PASSWD" scp kubernetes/up-k8s-node.sh root@$i:/root
+		sshpass -p "$NODE_PASSWD" scp node-pull-images.sh root@$i:/root
+	 	sshpass -p "$NODE_PASSWD" scp kube-init.txt root@$i:/root
+	 	sshpass -p "$NODE_PASSWD" ssh root@$i "bash up-k8s-node.sh"
 	 done
  	sleep 200
 fi
