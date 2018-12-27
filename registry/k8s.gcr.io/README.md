@@ -1,1 +1,1 @@
-# the k8s-image's version is 1.12.1
+# the k8s-image's version is 1.12.1 now
