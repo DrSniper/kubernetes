@@ -67,15 +67,21 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
 EOF
-yum install -y kubectl-1.12.1-0 kubelet-1.12.1-0 kubeadm-1.12.1-0
+yum install -y kubectl-1.12.2-0 kubelet-1.12.2-0 kubeadm-1.12.2-0
 systemctl enable kubelet && systemctl start kubelet
 
 echo "###6.准备k8s.grc.io镜像"
-bash yaml/pull-images.sh
+docker run -d -p 5000:5000 --restart=always --name registry docker.io/registry
+docker pull sniperwang/flannel:v0.10.0-amd64 
+docker tag  sniperwang/flannel:v0.10.0-amd64 quay.io/coreos/flannel:v0.10.0-amd64
+docker tag sniperwang/flannel:v0.10.0-amd64 `hostname -i`:5000/flannel:v0.10.0-amd64 
+docker push `hostname -i`:5000/flannel:v0.10.0-amd64 
+
+bash kubernetes/registry/master-pull-images.sh
 
 echo "###7.初始化master节点"
 kubeadm init \
-  --kubernetes-version=v1.12.1 \
+  --kubernetes-version=v1.12.2 \
   --pod-network-cidr=10.254.0.0/16 \
   --apiserver-advertise-address=`hostname -i` >kube-init.txt
 
@@ -83,6 +89,8 @@ echo "###8.使master节点 ready"
  mkdir -p $HOME/.kube
  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+ 
+ sleep 100
 
 echo "###9.将master节点同时设置为计算节点"
 kubectl taint nodes `hostname` node-role.kubernetes.io/master-
@@ -91,7 +99,7 @@ echo "###10.添加网络插件[fannel]"
 kubectl apply -f  yaml/flannel.yaml
 
 echo "###11.安装dashboard"
-kubectl apply -f  yaml/k8s-dashboard.yaml
+kubectl apply -f  kubernetes/yaml/k8s-base-plugins/k8s-dashboard.yaml 
 
 echo "StrictHostKeyChecking no" >>/etc/ssh/ssh_config
 if [ $CHOICE == 1 ];then
