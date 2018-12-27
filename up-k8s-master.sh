@@ -48,10 +48,10 @@ systemctl enable docker
 echo "###4.添加docker镜像仓库加速"
 
 sudo mkdir -p /etc/docker
-sudo tee /etc/docker/daemon.json <<-'EOF'
+cat <<EOF > /etc/docker/daemon.json 
 {
   "insecure-registries": ["`hostname -i`:5000"],
-  "registry-mirrors": ["https://ran9u71w.mirror.aliyuncs.com"]
+"registry-mirrors": ["https://ran9u71w.mirror.aliyuncs.com"]
 }
 EOF
 sudo systemctl daemon-reload
