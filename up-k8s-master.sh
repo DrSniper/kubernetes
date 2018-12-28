@@ -4,6 +4,9 @@ if [ $CHOICE == 'yes' ];then
 	read -p "请输入需要添加的主机ip，用' '(空格)隔开： " NODE_IP
 	read -p  "请输入node节点的密码：" NODE_PASSWD
 fi
+
+MASTER_IP=`hostname -i`
+
 echo "###1.系统准备"
 
 systemctl stop firewalld
@@ -50,8 +53,8 @@ echo "###4.添加docker镜像仓库加速"
 sudo mkdir -p /etc/docker
 cat <<EOF > /etc/docker/daemon.json 
 {
-  "insecure-registries": ["`hostname -i`:5000"],
-"registry-mirrors": ["https://ran9u71w.mirror.aliyuncs.com"]
+  "insecure-registries": ["$MASTER_IP:5000"],
+  "registry-mirrors": ["https://ran9u71w.mirror.aliyuncs.com"]
 }
 EOF
 sudo systemctl daemon-reload
@@ -74,29 +77,18 @@ echo "###6.准备k8s.grc.io镜像"
 docker run -d -p 5000:5000 --restart=always --name registry docker.io/registry
 docker pull sniperwang/flannel:v0.10.0-amd64 
 docker tag  sniperwang/flannel:v0.10.0-amd64 quay.io/coreos/flannel:v0.10.0-amd64
-docker tag sniperwang/flannel:v0.10.0-amd64 `hostname -i`:5000/flannel:v0.10.0-amd64 
-docker push `hostname -i`:5000/flannel:v0.10.0-amd64 
+docker tag sniperwang/flannel:v0.10.0-amd64 $MASTER_IP:5000/flannel:v0.10.0-amd64 
+docker push $MASTER_IP:5000/flannel:v0.10.0-amd64 
 
 bash kubernetes/registry/master-pull-images.sh
 
 docker images
 
-cat << EOF > node-pull-images.sh
-#! /bin/bash
-USERNAME=`hostname -i`
-images=(kube-apiserver:v1.12.2 kube-controller-manager:v1.12.2 kube-scheduler:v1.12.2 kube-proxy:v1.12.2 pause:3.1 etcd:3.2.24 coredns:1.2.2 kubernetes-dashboard-amd64:v1.10.0)
-for imageName in ${images[@]} ; do
-  docker pull $USERNAME/$imageName
-  docker tag $USERNAME/$imageName k8s.gcr.io/$imageName
-  docker rmi $USERNAME/$imageName
-done
-EOF
-
 echo "###7.初始化master节点"
 kubeadm init \
   --kubernetes-version=v1.12.2 \
   --pod-network-cidr=10.254.0.0/16 \
-  --apiserver-advertise-address=`hostname -i` >kube-init.txt
+  --apiserver-advertise-address=$MASTER_IP >kube-init.txt
 
 echo "###8.使master节点 ready"
  mkdir -p $HOME/.kube
@@ -123,9 +115,8 @@ if [ $CHOICE == 'yes' ];then
 	 	sshpass -p "$NODE_PASSWD" ssh root@$i "mkdir -p /etc/docker/"
 		sshpass -p "$NODE_PASSWD" scp /etc/docker/daemon.json root@$i:/etc/docker 
 	 	sshpass -p "$NODE_PASSWD" scp kubernetes/up-k8s-node.sh root@$i:/root
-		sshpass -p "$NODE_PASSWD" scp node-pull-images.sh root@$i:/root
 	 	sshpass -p "$NODE_PASSWD" scp kube-init.txt root@$i:/root
-	 	sshpass -p "$NODE_PASSWD" ssh root@$i "bash up-k8s-node.sh"
+	 	sshpass -p "$NODE_PASSWD" ssh root@$i "bash up-k8s-node.sh $MASTER_IP"
 		sleep 50
 	 done
 fi
@@ -135,7 +126,7 @@ kubectl get nodes
 kubectl get pods --all-namespaces
 
 echo "###14.访问"
-echo -e "请使用火狐浏览器访问dashboard界面：\n https://`hostname -i`:30001 "
+echo -e "请使用火狐浏览器访问dashboard界面：\n https://$MASTER_IP:30001 "
 SECRET=`kubectl get secret -n kube-system|grep dashboard-token|awk '{print $1}'`
 TOKEN=`kubectl describe secret -n kube-system $SECRET|grep "token:"|awk '{print $2}'`
 echo -e "选择token方式访问，token为：\n $TOKEN"
