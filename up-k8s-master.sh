@@ -79,6 +79,8 @@ docker push `hostname -i`:5000/flannel:v0.10.0-amd64
 
 bash kubernetes/registry/master-pull-images.sh
 
+docker images
+
 cat << EOF > node-pull-images.sh
 #! /bin/bash
 USERNAME=`hostname -i`
