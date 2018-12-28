@@ -103,20 +103,20 @@ echo "###8.使master节点 ready"
  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
  sudo chown $(id -u):$(id -g) $HOME/.kube/config
  
- sleep 100
 
 echo "###9.将master节点同时设置为计算节点"
 kubectl taint nodes `hostname` node-role.kubernetes.io/master-
 
 echo "###10.添加网络插件[fannel]"
 kubectl apply -f  kubernetes/yaml/k8s-base-plugins/flannel.yaml
-
+sleep 50
 
 echo "###11.安装dashboard"
 kubectl apply -f  kubernetes/yaml/k8s-base-plugins/k8s-dashboard.yaml 
+sleep 10
 
 echo "StrictHostKeyChecking no" >>/etc/ssh/ssh_config
-if [ $CHOICE == 1 ];then
+if [ $CHOICE == 'yes' ];then
 	 echo "###12.添加node节点"
 	 for i in $NODE_IP
 	 do
@@ -126,8 +126,8 @@ if [ $CHOICE == 1 ];then
 		sshpass -p "$NODE_PASSWD" scp node-pull-images.sh root@$i:/root
 	 	sshpass -p "$NODE_PASSWD" scp kube-init.txt root@$i:/root
 	 	sshpass -p "$NODE_PASSWD" ssh root@$i "bash up-k8s-node.sh"
+		sleep 50
 	 done
- 	sleep 200
 fi
 
 echo "###13.检查服务状态"
