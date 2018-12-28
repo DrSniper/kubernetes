@@ -53,12 +53,12 @@ yum install -y kubectl-1.12.2-0 kubelet-1.12.2-0 kubeadm-1.12.2-0
 systemctl enable kubelet && systemctl start kubelet
 
 echo "###5.准备k8s.grc.io镜像"
-docker pull k8s-master1:5000/kube-proxy:v1.12.2
-docker tag k8s-master1:5000/kube-proxy:v1.12.2 k8s.gcr.io/kube-proxy:v1.12.2
-docker rmi k8s-master1:5000/kube-proxy:v1.12.2
-docker pull k8s-master1:5000/flannel:v0.10.0-amd64 
-docker tag k8s-master1:5000/flannel:v0.10.0-amd64 quay.io/coreos/flannel:v0.10.0-amd64
-docker rmi k8s-master1:5000/flannel:v0.10.0-amd64
+docker pull $1:5000/kube-proxy:v1.12.2
+docker tag $1:5000/kube-proxy:v1.12.2 k8s.gcr.io/kube-proxy:v1.12.2
+docker rmi $1:5000/kube-proxy:v1.12.2
+docker pull $1:5000/flannel:v0.10.0-amd64 
+docker tag $1:5000/flannel:v0.10.0-amd64 quay.io/coreos/flannel:v0.10.0-amd64
+docker rmi $1:5000/flannel:v0.10.0-amd64
 
 
 echo "###6.添加node节点"
