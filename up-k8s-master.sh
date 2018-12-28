@@ -1,5 +1,5 @@
 #!/bin/bash
-read -p "是否添加node节点：1.yes   2.no:  " CHOICE
+read -p "是否添加node节点：yes  /   no:  " CHOICE
 if [ $CHOICE == 'yes' ];then
 	read -p "请输入需要添加的主机ip，用' '(空格)隔开： " NODE_IP
 	read -p  "请输入node节点的密码：" NODE_PASSWD
