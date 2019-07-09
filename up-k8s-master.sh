@@ -43,7 +43,7 @@ yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/d
 yum makecache fast
 
 yum install -y --setopt=obsoletes=0 \
-  docker-ce-18.06.1.ce-3.el7
+  docker-ce-18.06.1.ce-3.el7  #docker-ce-18.09.7-3.el7
 
 systemctl start docker
 systemctl enable docker
@@ -70,7 +70,7 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
 EOF
-yum install -y kubectl-1.12.2-0 kubelet-1.12.2-0 kubeadm-1.12.2-0
+yum install -y kubectl-1.12.2-0 kubelet-1.12.2-0 kubeadm-1.12.2-0  #1.15.0-0
 systemctl enable kubelet && systemctl start kubelet
 
 echo "###6.准备k8s.grc.io镜像"
