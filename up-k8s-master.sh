@@ -73,6 +73,12 @@ EOF
 yum install -y kubectl-1.12.2-0 kubelet-1.12.2-0 kubeadm-1.12.2-0  #1.15.0-0
 systemctl enable kubelet && systemctl start kubelet
 
+### 配置kubelet的cgroups
+DOCKER_CGROUP=$(docker info | grep Cgroup | awk '{print $3}')
+echo $DOCKER_CGROUP
+cat >/etc/sysconfig/kubelet<<EOF
+KUBELET_EXTRA_ARGS=--cgroup-driver=$DOCKER_CGROUP
+EOF
 echo "###6.准备k8s.grc.io镜像"
 docker run -d -p 5000:5000 --restart=always --name registry docker.io/registry
 docker pull sniperwang/flannel:v0.10.0-amd64 
