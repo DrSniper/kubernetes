@@ -83,9 +83,8 @@ spec:
         emptyDir: {}
       containers:
       - name: metrics-server
-        image: mirrorgooglecontainers/metrics-server-amd64:v0.3.6
+        image: registry.aliyuncs.com/google_containers/metrics-server-amd64:v0.3.6
         imagePullPolicy: IfNotPresent
-        # add start command to reconize node-name
         command:
         - /metrics-server
         - --kubelet-insecure-tls
@@ -104,13 +103,12 @@ spec:
         volumeMounts:
         - name: tmp-dir
           mountPath: /tmp
-        # add limits and requests
         resources:
           limits:
-            cpu: 300m
+            cpu: 100m
             memory: 200Mi
           requests:
-            cpu: 200m
+            cpu: 50m
             memory: 100Mi
       nodeSelector:
         kubernetes.io/os: linux
